@@ -1,0 +1,317 @@
+name: CI/CD for Backend Services
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/**'
+  pull_request:
+    paths:
+      - 'services/**'
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api_gateway: ${{ steps.filter.outputs.api_gateway }}
+      ai_core: ${{ steps.filter.outputs.ai_core }}
+      mcp_server: ${{ steps.filter.outputs.mcp_server }}
+      webops: ${{ steps.filter.outputs.webops }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api_gateway: services/api-gateway/**
+            ai_core: services/ai-core/**
+            mcp_server: services/mcp-server/**
+            webops: services/webops/**
+
+  test-api-gateway:
+    needs: changes
+    if: ${{ needs.changes.outputs.api_gateway == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          cd services/api-gateway
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd services/api-gateway
+          pytest
+
+  deploy-api-gateway:
+    needs: test-api-gateway
+    if: github.ref == 'refs/heads/main' && ${{ needs.changes.outputs.api_gateway == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and deploy
+        run: |
+          cd services/api-gateway
+          # Add deployment commands, e.g., docker build -t api-gateway . && docker push ...
+
+  test-ai-core:
+    needs: changes
+    if: ${{ needs.changes.outputs.ai_core == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          cd services/ai-core
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd services/ai-core
+          pytest
+
+  deploy-ai-core:
+    needs: test-ai-core
+    if: github.ref == 'refs/heads/main' && ${{ needs.changes.outputs.ai_core == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and deploy
+        run: |
+          cd services/ai-core
+          # Add deployment commands, e.g., for AI model serving
+
+  test-mcp-server:
+    needs: changes
+    if: ${{ needs.changes.outputs.mcp_server == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          cd services/mcp-server
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd services/mcp-server
+          pytest
+
+  deploy-mcp-server:
+    needs: test-mcp-server
+    if: github.ref == 'refs/heads/main' && ${{ needs.changes.outputs.mcp_server == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and deploy
+        run: |
+          cd services/mcp-server
+          # Add deployment commands, e.g., for MCP server
+
+  test-webops:
+    needs: changes
+    if: ${{ needs.changes.outputs.webops == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          cd services/webops
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd services/webops
+          pytest
+
+  deploy-webops:
+    needs: test-webops
+    if: github.ref == 'refs/heads/main' && ${{ needs.changes.outputs.webops == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and deploy
+        run: |
+          cd services/webops
+          # Add deployment commands, e.g., for web operations- **Containerization**: Dockerized service for consistent and scalable deployment. 
+
+## Directory Structure
+```
+cloud-librarian/
+├── Dockerfile
+├── docker-compose.yml
+├── entrypoint.sh
+├── requirements.txt
+├── bot_engine.py
+├── README.md
+├── docs/
+│   ├── architecture.md      # Detailed architecture explanation
+│   └── design_mindmap.png   # Visual mind map image file
+├── config/
+│   └── rclone.conf          # rclonee configuration file using host mount
+└── scripts/
+    └── util_scan_and_index.py  # Utility script for scanning and indexing code files
+``` 
+
+## Setup Instructions
+1. **rclone configuration**: Update `config/rclone.conf` with your OneDrive settings, or mount your host configuration.
+2. **Build and run with Docker Compose**:
+   ```bash
+   docker-compose build
+   docker-compose up -d
+   ```
+3. **API Endpoints**: The service exposes port 5000 for API access.
+4. **Utility Script**: Run the utility script via:
+   ```bash
+   python scripts/util_scan_and_index.py
+   ``` 
+
+## License
+MIT License
+``` 
+
+--- 
+
+**architecture.md**  
+```markdown
+# Architecture Documentation 
+
+## Overview
+The Cloud /etc/UARS/ Librarian Bot Engine consists of the following core components:
+- **API & Web Server**: Built with Flask Jetpack Compose to handle file uploads, command routing, scanning, and indexing of code libraries.
+- **Cloudqto alphabetical directories. 
+
+# Define your library storage directory
+LIBRARY_DIR="/etc/library" 
+
+# Create alphabetical directories if they don't exist
+for letter in {A..Z}; do
+  mkdir -p "$LIBRARY_DIR/$letter"
+done 
+
+# Create a directory for non-alphabetical files
+mkdir -p "$LIBRARY_DIR/Other" 
+
+# Move files into respective alphabetical directories based on their first letter
+for file in "$LIBRARY_DIR"/*; do
+  if [ -f "$file" ]; then
+    first_letter=$(basename "$file" | cut -c 1 | tr '[:lower:]' '[:upper:]')
+    if [[ $first_letter =~ [A-Z] ]]; then
+      mv "$file" "$LIBRARY_DIR/$first_letter/"
+    else
+      mv "$file" "$LIBRARY_DIR/Other/"
+    fi
+  fi
+done 
+
+echo "Library storage organized alphabetically."
+``` 
+
+--- 
+
+**design_mindmap.png**  
+```txt
+[Binary file: design_mindmap.png]
+```
+``` 
+
+$ git add . -v add '.hardened_permissions.db' remove '01_env_tell_all.sh' remove '02_space_init_and_sync.sh' remove '0_ZoxEAS_KAiOvmgBj (1).png' remove '0_cBdn4B_LjUGURJ96.png' remove '0_v0H5Y227Dnnz4DcX.jpg' remove '2mDPs.png' remove 'AUDIT_SUMMARY.md' remove 'MASTER_COMPREHENSIVE_REPORT.md' remove 'NotebookLM Mind Map.png' remove 'Notes_250822_080557_971.png' remove 'Notes_250822_080557_b78.png' remove 'PROTECTION_STATUS.md' remove 'SSNAHKE_LOCAL_DOCUMENTATION.md' remove '_data_data_tech.ula_files_home_.omniscient_core_system-bootstrap.sh' remove '_data_data_tech.ula_files_home_.omniscient_dev_mobile-ide-server.sh' remove '_data_data_tech.ula_files_home_.omniscient_network_tunnel-manager.sh' remove '_data_data_tech.ula_files_home_.omniscient_optimization_performance-tuner-1.sh' remove '_data_data_tech.ula_files_home_.omniscient_optimization_performance-tuner.sh' remove 'access-to-keymint.png' remove 'agent_core.py' remove 'ansible-navigator-jenkins-nodejs-python-java.png' add 'configs/activation_rules.json' remove 'demo-enhanced-ai-cores.sh' remove 'difference-microshift-openshift.jpg' add 'docs/assets/NotebookLM Mind Map.png' remove 'free_space_cleanup.sh' remove 'generate_profile_env.sh' remove 'github_remediation_omniscient.sh' remove 'install_ca.sh' remove 'knows.sh' remove 'map_everything.sh' remove 'map_everything_fixed.sh' remove 'microshift-architecture.jpg' remove 'proot_cmdline_audit.sh' remove 'proot_diagnostics.sh' remove 'proot_inspector.sh' remove 'unstoppable agentics.sh' remove 'unstoppable_agentics.sh'reserved_keywords=("HOME" "USER" "systemd" "data" "media" "obb" "Desktop" "Mobile") 
+
+# We assume that if $MOUNT_DIR does not contain any of the reserved keywords,
+# then it is considered a generic location for containerization.
+trigger_containerization=1
+for keyword in "${reserved_keywords[@]}"; do
+    if [[ "$MOUNT_DIR" == *"$keyword"* ]]; then
+        trigger_containerization=0
+        break
+    fi
+done 
+
+if [ $trigger_containerization -eq 1 ]; then
+    echo "Generic mount location detected. Initiating librarian containerization..."
+    # For our purposes, we create a subdirectory named 'librarian_container'
+    # inside the mounted cloudspace as the container.
+    LIBRARIAN_CONTAINER="$MOUNT_DIR/librarian_container"
+    mkdir -p "$LIBRARIAN_CONTAINER"
+    echo "Librarian container created at: $LIBRARIAN_CONTAINER"
+else
+    echo "Mount location is one of the reserved paths. Skipping generic librarian containerization."
+fi
+
+
+#######################
+# PART 2: Archive Excessive/Unused Data
+####################### 
+
+header "Part 2: Archiving Unused Files from $SOURCE_DIR" 
+
+# Check that the SOURCE_DIR exists.
+if [ ! -d "$SOURCE_DIR" ]; then
+    echo "Source directory '$SOURCE_DIR' does not exist. Skipping archiving step."
+else
+    # Create or ensure the index file exists.
+    touch "$INDEX_FILE"
+    # Backup the current index file.
+    cp "$INDEX_FILE" "${INDEX_FILE}.bak"
+    
+    echo "Finding files in '$SOURCE_DIR' not accessed for more than $THRESHOLD_DAYS days:"
+    # List eligible files
+    find "$SOURCE_DIR" -type f -atime +$THRESHOLD_DAYS -print 
+
+    read -p "Proceed to move these files to SD3 Cloud Storage archive ($REMOTE_FULL)? (y/N): " arch_resp
+    if [[ "$arch_resp" != "y" && "$arch_resp" != "Y" ]]; then
+        echo "Aborting archiving step."
+    else
+        echo "Archiving files..."
+        # Loop through each file that satisfies the access time condition.
+        find "$SOURCE_DIR" -type f -atime +$THRESHOLD_DAYS -print | while read -r file; do
+            # Determine the relative path from SOURCE_DIR.
+            rel_path="${file#$SOURCE_DIR/}"
+            # Construct the remote destination (preserve relative folder structure).
+            remote_dest="$REMOTE_FULL/$rel_path"
+            
+            echo "Moving file: $file"
+            # Use rclone move to transfer the file from local to SD3 Cloud Storage.
+            rclone move "$file" "$REMOTE_FULL" --create-empty-src-dirs --verbose
+            
+            if [ $? -eq 0 ]; then
+                echo "$file -> $remote_dest" >> "$INDEX_FILE"
+            else
+                echo "Error moving $file" >&2
+            fi
+        done
+        echo "Archiving complete."
+        echo "Index saved to: $INDEX_FILE"
+        # Protect the index file from accidental deletion by setting it to read-only.
+        chmod 444 "$INDEX_FILE"
+        echo "Index file permissions updated (read-only)."
+    fi
+fi 
+
+#######################
+# Summary
+####################### 
+
+header "Summary"
+echo "SD3 Cloud Storage remote '$REMOTE_NAME' is configured."
+echo "Remote archive folder '$REMOTE_FULL' is mounted at: $MOUNT_DIR"
+echo "If you want to reference your archived files in another project, you can create a symlink. For example:"
+echo "  ln -s $MOUNT_DIR \$HOME/WarHorseAI/archived_links"
+echo ""
+echo "To unmount the SD3 Cloud Storage archive, use:"
+echo "  fusermount -u $MOUNT_DIR"
+echo ""
+echo "Setup complete."

@@ -1,0 +1,52 @@
+#!/usr/bin/env node
+// Force strict mode and setup for ESM
+"use strict";
+
+/*************************************************************************
+ * BEGIN PLUGGABLE AI LOGIC
+ *
+ * This section defines your tokens and creates the pluggable AI 
+ * object you described, making them available to the entire script.
+ *************************************************************************/
+
+// 1. Define your tokens as JavaScript constants
+const GITHUB_TOKEN = ",{'Repository.Secrets'}";
+const GH_TOKEN = "{'Repository.Secrets'}";
+
+// 2. Create the "Pluggable AI" object you wanted
+// This centralizes your keys so you can swap them out.
+const PluggableAI = {
+  // Define all available AI tokens
+  tokens: {
+    github: GITHUB_TOKEN,
+    gh: GH_TOKEN
+    // You can add other AI keys here
+    // anthropic: "sk-ant-...",
+    // openai: "sk-..."
+  },
+
+  // Set the 'active' AI for the script to use.
+  // Just change this one line to swap the AI.
+  active: GH_TOKEN
+};
+
+// 3. Make these definitions available to the rest of the script
+//
+// The 'process.env' part is the Node.js equivalent of your 'export'
+// This makes the tokens available as environment variables *within* the script.
+process.env.GITHUB_TOKEN = GITHUB_TOKEN;
+process.env.GH_TOKEN = GH_TOKEN;
+
+// This makes your PluggableAI object globally available
+// The rest of the script can now use 'PluggableAI.active' to get the key.
+global.PluggableAI = PluggableAI;
+
+/*************************************************************************
+ * END PLUGGABLE AI LOGIC
+ *************************************************************************/
+
+// --- DESIGNATE SCRIPT CONTINUES BELOW ---
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+// ... (rest of the file)

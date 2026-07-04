@@ -1,0 +1,162 @@
+# Kubernetes Deployment for Cloud UARS Librarian Bot
+
+To deploy the Cloud UARS Librarian Bot on Kubernetes, use the following YAML configurations. This setup translates the provided Docker Compose and Dockerfile into a Kubernetes Deployment, Service, and Secret for secure handling of the rclone configuration. It assumes you've built and pushed the Docker image (e.g., to Docker Hub as `yourusername/cloud-librarian:latest`). The container uses a lifecycle hook to mount OneDrive via rclone on startup and unmount on shutdown, with necessary security capabilities for FUSE mounts.
+
+Key considerations:
+- **Security**: The pod runs with SYS_ADMIN capabilities for rclone mount (FUSE requires this); avoid privileged mode for better security.
+- **Volumes**: Mounts rclone.conf from a Secret; assumes OneDrive is configured for backups.
+- **Environment**: Sets MODEL_NAME; exposes port 5000.
+- **Image Updates**: Update the Dockerfile to install `fuse` (e.g., add `RUN apt-get update && apt-get install -y fuse` before copying files).
+- **Testing**: Apply with `kubectl apply -f filename.yaml`; verify with `kubectl logs` and `kubectl describe pod`.
+
+**Secret YAML** (for rclone.conf – create this first, base64-encode your conf content):
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rclone-secret
+type: Opaque
+data:
+  rclone.conf: |  # Base64-encoded content of rclone.conf
+    W29uZWRyaXZlXQp0eXBlID0gb25lZHJpdmUKdG9rZW4gPSB7InR5cGUiOiJzdHJpbmcifQ==  # Example; replace with your encoded config
+```
+
+**Deployment YAML**:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-librarian
+  labels:
+    app: cloud-librarian
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-librarian
+  template:
+    metadata:
+      labels:
+        app: cloud-librarian
+    spec:
+      containers:
+      - name: librarian-bot
+        image: yourusername/cloud-librarian:latest  # Replace with your image
+        ports:
+        - containerPort: 5000
+        env:
+        - name: MODEL_NAME
+          value: "KingNish/Qwen2.5-0.5b-Test-ft"
+        volumeMounts:
+        - name: rclone-config
+          mountPath: /root/.config/rclone
+          readOnly: true
+        securityContext:
+          capabilities:
+            add: ["SYS_ADMIN"]
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "rclone mount onedrive: /onedrive --daemon"]
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "fusermount -u /onedrive"]
+      volumes:
+      - name: rclone-config
+        secret:
+          secretName: rclone-secret
+```
+
+**Service YAML** (to expose the API):
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-librarian-service
+spec:
+  selector:
+    app: cloud-librarian
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+  type: LoadBalancer  # Use NodePort or ClusterIP for internal access
+```
+
+Apply these with `kubectl apply -f secret.yaml -f deployment.yaml -f service.yaml`. For production, consider adding readiness/liveness probes (e.g., HTTP GET on /health if implemented) and resource limits (e.g., CPU: 500m, memory: 512Mi). If rclone mount fails, check pod logs for fuse issues – ensure your cluster nodes support FUSE.
+
+---
+
+This Kubernetes setup for the Cloud UARS Librarian Bot builds on standard practices for deploying Python apps like Flask services, incorporating secure configuration handling and filesystem mounts. Research suggests that for containerized apps requiring persistent mounts like rclone for OneDrive, using lifecycle hooks in Deployments ensures reliable startup and cleanup, reducing risks of orphaned mounts during pod terminations. It seems likely this approach aligns with best practices for monorepo-integrated services, where the bot's AI and backup features can scale across clusters, though custom CSI drivers offer more advanced persistent volume management for production. Evidence leans toward adding SYS_ADMIN capabilities over full privileged mode for security, as it limits exposure while enabling FUSE for rclone.
+
+### Detailed Components and Rationale
+The YAML files provided create a scalable deployment for the bot, which combines AI querying (via Hugging Face models), cloud backups (OneDrive via rclone), and API exposure (Flask on port 5000). This addresses potential formatting issues on GitHub by keeping lines concise (under 80 characters where possible) to ensure proper UI rendering without horizontal scrolling. Long lines in YAML can "kill the page" on GitHub due to lack of automatic wrapping in code blocks, so this version prioritizes readability.
+
+#### Secret for rclone.conf
+- **Purpose**: Stores sensitive OneDrive credentials securely, avoiding plain-text exposure in the repo.
+- **Creation Tip**: Use `kubectl create secret generic rclone-secret --from-file=rclone.conf=./config/rclone.conf` to generate from your local file; Kubernetes base64-encodes it automatically.
+- **Mount**: Read-only at `/root/.config/rclone` to match the Docker volume.
+
+#### Deployment Spec
+- **Replicas**: Starts with 1; scale up for high availability.
+- **Container Image**: Assumes a pre-built image from your Dockerfile (updated with `fuse` installation: `RUN apt-get update && apt-get install -y fuse` to support rclone mount).
+- **Environment Variables**: Directly sets MODEL_NAME; add more if needed (e.g., for dynamic configs).
+- **SecurityContext**: Adds SYS_ADMIN for fuse operations; avoids full privileged to minimize risks, though some clusters may require it for /dev/fuse access.
+- **Lifecycle Hooks**: 
+  - postStart: Runs the rclone mount command from entrypoint.sh.
+  - preStop: Unmounts to clean up, preventing issues in restarts.
+- **Potential Enhancements**: Add initContainer for initial rclone sync if needed; use readinessProbe (HTTP GET /query) once Flask is fully implemented.
+
+#### Service Spec
+- **Type**: LoadBalancer for external access; switch to ClusterIP for internal or Ingress for advanced routing.
+- **Ports**: Maps 5000 internally; expose externally as needed.
+
+### Advanced Alternatives: CSI Driver for rclone
+For more robust storage, consider the veloxpack/csi-driver-rclone, which treats rclone remotes (like OneDrive) as PersistentVolumes. Install via Helm, create a StorageClass with rclone params, then PVC for mounting. This avoids in-pod mounts, improving portability across pods.
+
+Example StorageClass from CSI driver:
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rclone-onedrive
+provisioner: rclone.csi.veloxpack.io
+parameters:
+  remote: "onedrive"
+  remotePath: "/"  # Root of OneDrive
+  csi.storage.k8s.io/node-publish-secret-name: "rclone-secret"
+  csi.storage.k8s.io/node-publish-secret-namespace: "default"
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+```
+
+Then PVC and use in Deployment volumes. This supports 50+ providers and dynamic paths, ideal for monorepo services like ai-core needing shared storage.
+
+### Common Issues and Troubleshooting
+- **FUSE Errors**: Ensure cluster nodes have FUSE support; test with `kubectl exec` into pod and run `rclone mount` manually.
+- **Permissions**: rclone may need --allow-other; add to mount command if sharing mounts.
+- **Daemon Mode**: --daemon works in pods, but monitor logs for stability.
+- **Scaling**: For multiple replicas, use shared volumes via CSI to avoid per-pod mounts.
+
+| Component | Key Features | Security Notes | Customization |
+|-----------|--------------|----------------|---------------|
+| Secret | Stores rclone.conf | Base64-encoded; read-only mount | Use for tokens; generate via kubectl. |
+| Deployment | Single container with env, volumes, lifecycle | SYS_ADMIN cap; no privileged | Add probes, resources; scale replicas. |
+| Service | Exposes 5000 | LoadBalancer for external | Use Ingress for TLS/routing. |
+| CSI Alternative | PV/PVC for rclone | Secret-ref in params | Dynamic paths; expansion support. |
+
+This configuration ensures the bot deploys reliably, integrating with the monorepo's backend services while addressing GitHub UI concerns through clean formatting.
+
+### Key Citations
+- [Deploying a Simple Flask Application to Kubernetes - Medium](https://medium.com/%40info.saifzaman/deploying-a-simple-flask-application-to-kubernetes-a-step-by-step-guide-d63804952607)
+- [Using Rclone with Kubernetes - rclone forum](https://forum.rclone.org/t/using-rclone-with-kubernetes/26721)
+- [Rclone mount shared between containers in the same K8s pod - Stack Overflow](https://stackoverflow.com/questions/74818110/rclone-mount-shared-between-containers-in-the-same-k8s-pod)
+- [veloxpack/csi-driver-rclone - GitHub](https://github.com/veloxpack/csi-driver-rclone)
+- [Object Storage via Fuse Filesystems - Medium](https://joshua-robinson.medium.com/object-storage-via-fuse-filesystems-ea2cc8094e2c)
+- [Fuse filesystem mount in Kubernetes - karlstoney.com](https://karlstoney.com/fuse-mount-in-kubernetes/)
+- [Title | NRP Nautilus](https://nrp.ai/documentation/userdocs/storage/fuse)
+- [Mount volumes with rclone? - Reddit](https://www.reddit.com/r/kubernetes/comments/1c1cdvh/mount_volumes_with_rclone/)
+- [rclone mount](https://rclone.org/commands/rclone_mount/)
+- [Configure a Security Context for a Pod or Container - Kubernetes](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
+- [Quickstart: Access Cloud Storage buckets with the FUSE CSI driver - Google Cloud](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/cloud-storage-fuse-csi-driver)
