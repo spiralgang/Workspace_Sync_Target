@@ -167,7 +167,13 @@ jobs:
           ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
         run: |
           if [ ! -f ".glm-request" ]; then
-            echo "No .glm-request file found. Create one with your request!"
+            echo "❌ No .glm-request file found."
+            echo ""
+            echo "📝 To trigger GLM code generation:"
+            echo "  1. Create file: .glm-request"
+            echo "  2. Add your prompt (e.g., 'Create a Python email validator')"
+            echo "  3. Commit and push"
+            echo "  4. Trigger workflow: gh workflow run glm-companion.yml"
             exit 0
           fi
 
@@ -209,6 +215,21 @@ jobs:
 
           python generate.py
           echo "Code generated → GLM_GENERATED_CODE.md"
+
+      - name: No-Op Fallback (informational)
+        if: |-
+          github.event_name != 'pull_request' &&
+          github.event_name != 'issues' &&
+          github.event_name != 'workflow_dispatch'
+        run: |
+          echo "✅ GLM Companion is active but idle."
+          echo ""
+          echo "Triggers:"
+          echo "  • Pull Request → Automatic code review"
+          echo "  • New Issue → Solution architecture"
+          echo "  • Manual dispatch → Custom code generation"
+          echo ""
+          echo "Learn more: https://github.com/spiralgang/Workspace_Sync_Target/wiki"
 
       - name: Sign-off
         run: |
