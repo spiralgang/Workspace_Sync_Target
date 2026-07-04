@@ -1,0 +1,42 @@
+name: Extract ZIP and Create PR
+
+on:
+  workflow_dispatch:
+
+jobs:
+  extract-and-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: extract-deep-ssnahke-app
+
+      - name: Download ZIP from main
+        run: |
+          git fetch origin main
+          git show origin/main:deep_ssnahke_app.zip > deep_ssnahke_app.zip
+
+      - name: Unzip file
+        run: |
+          unzip -q deep_ssnahke_app.zip
+          ls -la
+
+      - name: Commit extracted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Extract deep_ssnahke_app.zip contents" || echo "No changes to commit"
+          git push origin extract-deep-ssnahke-app
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: extract-deep-ssnahke-app
+          title: "Extract deep_ssnahke_app.zip"
+          body: "Automated extraction of deep_ssnahke_app.zip using GitHub Actions"
+          commit-message: "Extract deep_ssnahke_app.zip"
