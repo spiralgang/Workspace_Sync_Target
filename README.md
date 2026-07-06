@@ -86,6 +86,57 @@ Configuration files:
 - Ollama (local models)
 - GitHub Copilot (conceptual integration)
 
+## GitHub Actions & CI/CD
+
+The repository includes comprehensive workflows for automated testing, matrix execution, and AI-assisted code review:
+
+| Workflow | Purpose | Triggers |
+|----------|---------|----------|
+| [`main.yml`](.github/workflows/main.yml) | Primary CI pipeline | Push to main/develop |
+| [`orchestrator.yml`](.github/workflows/orchestrator.yml) | Agent matrix orchestration | Manual dispatch |
+| [`librarian.yml`](.github/workflows/librarian.yml) | Backend service validation | PR on server code |
+| [`dashboard.yml`](.github/workflows/dashboard.yml) | Frontend build & test | PR on client code |
+| [`glm-coder-companion.yml`](.github/workflows/glm-coder-companion.yml) | **Multi-AI code review** (6+ providers) | All PRs |
+| [`ephemeral-runner-orchestrator.yml`](.github/workflows/ephemeral-runner-orchestrator.yml) | Self-hosted runner lifecycle | Manual/scheduled |
+
+### Multi-AI Code Review System
+
+The `glm-coder-companion.yml` workflow provides comprehensive PR analysis using multiple free-tier AI endpoints:
+
+**Supported Providers**: OpenRouter, HuggingFace, GitHub Models, Nvidia, Qwen, Kimi
+
+**Features**:
+- **Context Engine**: Generates token-optimized bundles (minimal/balanced/full strategies)
+- **Auto Key Sourcing**: Attempts ENV → Secrets file → Skip (no manual config needed)
+- **Parallel Execution**: All providers run simultaneously for diverse perspectives
+- **Aggregated Comments**: Consolidated report posted as PR comment with verdicts and scores
+
+**Setup**: Add API keys to repository secrets or `.github/secrets.json` (gitignored):
+```bash
+# Example secrets.json structure
+{
+  "OPENROUTER_API_KEY": "sk-or-...",
+  "HF_API_KEY": "hf_...",
+  "NVIDIA_API_KEY": "nvapi-...",
+  "DASHSCOPE_API_KEY": "sk-...",
+  "KIMI_API_KEY": "..."
+}
+```
+
+### Ephemeral Self-Hosted Runners
+
+For heavy workloads, the system supports temporary runners on network storage:
+
+```bash
+# Trigger runner setup via workflow dispatch
+gh workflow run ephemeral-runner-orchestrator.yml --field action=setup
+
+# Runner will be available for 60 minutes (configurable TTL)
+# Labels: ephemeral, agentic-matrix, multi-ai, termux
+```
+
+Runners are automatically cleaned up after TTL expiration or via scheduled cleanup job.
+
 ## Directory Structure
 
 ```

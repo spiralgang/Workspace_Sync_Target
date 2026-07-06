@@ -23,3 +23,18 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# AI/Secrets configuration
+.github/secrets.json
+.github/context-bundle.json
+.github/ai-reviews.json
+.github/review-metrics.jsonl
+.github/runner-state/
+
+# Ephemeral runner storage
+runners/
+*.tar.gz
+
+# Python cache
+__pycache__/
+*.py[cod]

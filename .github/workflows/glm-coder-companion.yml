@@ -53,7 +53,7 @@ jobs:
     continue-on-error: true # Don't block PR if AI fails
     strategy:
       matrix:
-        provider: [openrouter, huggingface, github_models, nvidia]
+        provider: [openrouter, huggingface, github_models, nvidia, qwen, kimi]
     steps:
       - uses: actions/checkout@v4
       
