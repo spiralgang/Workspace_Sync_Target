@@ -1,0 +1,40 @@
+# Node
+node_modules/
+dist/
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Context & AI artifacts (generated)
+.github/context-bundle.json
+.github/ai-reviews.json
+.github/reviews/
+
+# Secrets template (keep example, ignore real)
+.github/secrets.json
+!.github/secrets.example.json
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AI/Secrets configuration
+.github/secrets.json
+.github/context-bundle.json
+.github/ai-reviews.json
+.github/review-metrics.jsonl
+.github/runner-state/
+
+# Ephemeral runner storage
+runners/
+*.tar.gz
+
+# Python cache
+__pycache__/
+*.py[cod]

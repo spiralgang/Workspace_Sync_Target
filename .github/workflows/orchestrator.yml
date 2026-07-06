@@ -27,7 +27,7 @@ on:
           - system_validation
       target_scope:
         description: 'Operation scope'
-        required: false
+        required: true
         default: 'all'
         type: choice
         options:

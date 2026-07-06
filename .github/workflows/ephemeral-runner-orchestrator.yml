@@ -1,0 +1,69 @@
+name: Ephemeral Runner Orchestrator
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action (setup/start/cleanup)'
+        required: false
+        default: 'setup'
+      ttl_minutes:
+        description: 'Runner TTL in minutes'
+        required: false
+        default: '60'
+  schedule:
+    # Cleanup stale runners every hour
+    - cron: '0 * * * *'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  manage-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      runner_info: ${{ steps.setup.outputs.runner_info }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Setup Ephemeral Runner
+        id: setup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUNNER_STORAGE: "${{ github.workspace }}/runners"
+          RUNNER_LABELS: "ephemeral,agentic-matrix,multi-ai"
+        run: |
+          python .github/helper-scripts/ephemeral_runner.py ${{ github.event.inputs.action || 'setup' }}
+      
+      - name: Store Runner State
+        if: github.event.inputs.action != 'cleanup'
+        run: |
+          mkdir -p .github/runner-state
+          echo '${{ steps.setup.outputs.runner_info }}' > .github/runner-state/current-runner.json
+      
+      - name: Upload Runner State
+        if: github.event.inputs.action != 'cleanup'
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-state
+          path: .github/runner-state/
+          retention-days: 1
+
+  trigger-dependent-workflows:
+    needs: manage-runner
+    if: needs.manage-runner.outputs.runner_info != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Workflows
+        run: |
+          echo "✓ Ephemeral runner ready for dependent workflows"
+          echo "Runner Info: ${{ needs.manage-runner.outputs.runner_info }}"
+          
+      # In real implementation, would trigger other workflows here
+      # using repository_dispatch or workflow_run events
