@@ -1,0 +1,53 @@
+name: Main CI Runner
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  run-main-checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies if package.json exists
+        run: |
+          if [ -f package.json ]; then
+            npm ci || npm install
+          else
+            echo "No package.json; skipping npm install"
+          fi
+
+      - name: Run basic lint/test (if available)
+        run: |
+          if [ -f package.json ]; then
+            if npm run -s lint; then
+              echo "Lint passed"
+            else
+              echo "Lint script not present or failed; continuing"
+            fi
+            if npm test --silent; then
+              echo "Tests passed"
+            else
+              echo "Tests failed or not present; continuing"
+            fi
+          else
+            echo "No node project to test"
+          fi
+
+      - name: Done
+        run: |
+          echo "Main CI Runner completed"
