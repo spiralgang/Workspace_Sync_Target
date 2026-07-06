@@ -1,0 +1,175 @@
+{
+  "version": "1.0",
+  "name": "agentic-matrix-index",
+  "description": "Live registry of agents, capabilities, and dependency graphs",
+  "updatedAt": "2025-07-06T09:53:00Z",
+  "agents": {
+    "pack-agent": {
+      "id": "pack-agent",
+      "name": "Packaging Agent",
+      "role": "packaging",
+      "status": "active",
+      "capabilities": ["apk-build", "zipalign", "apksigner", "bundle-tool"],
+      "dependencies": {
+        "runtime": ["openjdk-11", "build-tools-34", "gradle-8"],
+        "libraries": ["apksigner-lib", "zipalign-bin"],
+        "envVars": ["ANDROID_HOME", "JAVA_HOME"]
+      },
+      "compatibility": {
+        "os": ["linux", "android-termux"],
+        "arch": ["arm64-v8a", "x86_64"],
+        "minSdk": 21
+      },
+      "metrics": {
+        "avgExecutionTime": 245,
+        "successRate": 0.97,
+        "cacheHitRate": 0.82,
+        "totalJobs": 1847
+      }
+    },
+    "code-agent": {
+      "id": "code-agent",
+      "name": "Code Compilation Agent",
+      "role": "compilation",
+      "status": "active",
+      "capabilities": ["tsc", "vite", "drizzle-kit", "esbuild", "rollup"],
+      "dependencies": {
+        "runtime": ["node-18", "pnpm-9"],
+        "libraries": ["typescript-5", "vite-5", "drizzle-orm"],
+        "envVars": ["NODE_ENV", "PNPM_HOME"]
+      },
+      "compatibility": {
+        "os": ["linux", "macos", "windows", "android-termux"],
+        "arch": ["arm64-v8a", "x86_64", "amd64"],
+        "minNodeVersion": 18
+      },
+      "metrics": {
+        "avgExecutionTime": 89,
+        "successRate": 0.99,
+        "cacheHitRate": 0.91,
+        "totalJobs": 3421
+      }
+    },
+    "test-agent": {
+      "id": "test-agent",
+      "name": "Validation & Testing Agent",
+      "role": "validation",
+      "status": "active",
+      "capabilities": ["vitest", "pytest", "eslint", "prettier", "jest"],
+      "dependencies": {
+        "runtime": ["python-3.11", "node-18"],
+        "libraries": ["vitest", "pytest", "eslint", "prettier"],
+        "envVars": ["PYTHONPATH", "NODE_ENV"]
+      },
+      "compatibility": {
+        "os": ["linux", "macos", "android-termux"],
+        "arch": ["arm64-v8a", "x86_64"],
+        "minPythonVersion": "3.8",
+        "minNodeVersion": 16
+      },
+      "metrics": {
+        "avgExecutionTime": 156,
+        "successRate": 0.94,
+        "cacheHitRate": 0.67,
+        "totalJobs": 2198
+      }
+    },
+    "security-agent": {
+      "id": "security-agent",
+      "name": "Security Scanning Agent",
+      "role": "security-scan",
+      "status": "active",
+      "capabilities": ["dependency-check", "sast", "secret-scan", "trivy", "snyk"],
+      "dependencies": {
+        "runtime": ["docker", "snyk-cli", "trivy-bin"],
+        "libraries": ["owasp-dependency-check", "semgrep"],
+        "envVars": ["SNYK_TOKEN", "DOCKER_HOST"]
+      },
+      "compatibility": {
+        "os": ["linux", "macos"],
+        "arch": ["arm64-v8a", "x86_64"],
+        "requiresDocker": true
+      },
+      "metrics": {
+        "avgExecutionTime": 312,
+        "successRate": 0.98,
+        "cacheHitRate": 0.45,
+        "totalJobs": 876
+      }
+    },
+    "deploy-agent": {
+      "id": "deploy-agent",
+      "name": "Deployment Agent",
+      "role": "deployment",
+      "status": "active",
+      "capabilities": ["docker-build", "kubectl", "helm", "terraform", "ansible"],
+      "dependencies": {
+        "runtime": ["docker", "kubernetes-cli", "helm-3", "terraform"],
+        "libraries": ["kubernetes-client", "helm-charts"],
+        "envVars": ["KUBECONFIG", "DOCKER_REGISTRY", "TF_VAR_region"]
+      },
+      "compatibility": {
+        "os": ["linux", "macos"],
+        "arch": ["arm64-v8a", "x86_64"],
+        "requiresDocker": true,
+        "requiresKubeconfig": true
+      },
+      "metrics": {
+        "avgExecutionTime": 478,
+        "successRate": 0.92,
+        "cacheHitRate": 0.34,
+        "totalJobs": 543
+      }
+    },
+    "telemetry-agent": {
+      "id": "telemetry-agent",
+      "name": "Monitoring & Telemetry Agent",
+      "role": "monitoring",
+      "status": "active",
+      "capabilities": ["metrics-collect", "log-aggregate", "alert", "prometheus", "grafana"],
+      "dependencies": {
+        "runtime": ["prometheus", "grafana", "loki"],
+        "libraries": ["prom-client", "winston", "pino"],
+        "envVars": ["PROMETHEUS_URL", "GRAFANA_API_KEY", "LOKI_URL"]
+      },
+      "compatibility": {
+        "os": ["linux", "macos", "android-termux"],
+        "arch": ["arm64-v8a", "x86_64"],
+        "requiresNetwork": true
+      },
+      "metrics": {
+        "avgExecutionTime": 23,
+        "successRate": 0.99,
+        "cacheHitRate": 0.12,
+        "totalJobs": 15672
+      }
+    }
+  },
+  "capabilityIndex": {
+    "apk-build": ["pack-agent"],
+    "zipalign": ["pack-agent"],
+    "apksigner": ["pack-agent"],
+    "tsc": ["code-agent"],
+    "vite": ["code-agent"],
+    "drizzle-kit": ["code-agent"],
+    "vitest": ["test-agent"],
+    "pytest": ["test-agent"],
+    "eslint": ["test-agent"],
+    "dependency-check": ["security-agent"],
+    "sast": ["security-agent"],
+    "secret-scan": ["security-agent"],
+    "docker-build": ["deploy-agent"],
+    "kubectl": ["deploy-agent"],
+    "metrics-collect": ["telemetry-agent"],
+    "log-aggregate": ["telemetry-agent"]
+  },
+  "antiFlailRules": {
+    "duplicateCapability": "reject-with-alternatives",
+    "missingDependency": "fail-fast-with-install-hint",
+    "incompatibleOS": "skip-with-warning",
+    "unregisteredAgent": "reject-with-registration-link"
+  },
+  "stateDirectory": "~/.termux/agent-state/",
+  "cacheEnabled": true,
+  "refreshInterval": 3600
+}

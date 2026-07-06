@@ -1,125 +1,217 @@
-# Layered Architecture Integration
+# Agentic Matrix Layers
 
-This directory contains the progressive integration layers of the Agentic Matrix. 
-Each layer represents a distinct capability domain that will be bridged together 
-to form the complete juggernaut system.
+This directory contains the **layered capability imports** that form the foundation of the comprehensive workspace sync repo. Each layer represents a self-contained domain of functionality that will be integrated through explicit bridges in future phases.
 
-## Current Layers
+## Philosophy: Layered Integration
 
-### 1. `skill-protocol/` (Layer 1: Agent Definition)
-**Source:** `agentic-worker.skil.zip`
-**Purpose:** Defines the SKILL language and protocol for agent behavior specification.
+As noted in the repo organization strategy, this appears as "massive drift" initially but follows a deliberate **layered architecture pattern**:
 
-**Structure:**
-```
-skill-protocol/
-└── agentic-worker.skill/    # SKILL package directory
-    ├── SKILL.md             # Language spec & quickstart guide
-    ├── scripts/             # Core Python implementation (agentic_worker.py, init_worker.py)
-    ├── templates/           # Boilerplate for new worker instances
-    └── references/          # Architecture docs, ADK patterns, tool execution guides
-```
+1. **Import Raw Capability** ✓ (Current Phase)
+2. **Isolate in Dedicated Layer** ✓ (Current Phase)
+3. **Build Explicit Bridges** (Next Phase)
+4. **Merge into Unified Matrix** (Future Phase)
 
-**Key Capabilities:**
-- Persistent state management for multi-turn agents
-- Hash-based caching to prevent redundant LLM calls
-- Parallel tool execution with concurrent dispatch
-- Daemon/interactive/one-shot execution modes
-- Google ADK 2.0 inspired graph workflows
+Layers remain **isolated by design**—ready for bridge construction when implementing:
+- Python ↔ TypeScript adapters
+- Cross-layer event bus
+- Unified CLI orchestrator
+- Matrix-driven execution grid
 
-**Integration Status:** 🟡 Ready for bridge to State Engine
+---
 
-### 2. `state-engine/` (Layer 2: Persistence & Runtime)
-**Source:** `deep_ssnahke_app.zip`
-**Purpose:** Full-stack TypeScript runtime with database ORM, tRPC APIs, and React UI.
-
-**Structure:**
-```
-state-engine/
-├── server/                  # tRPC backend, Express server, Drizzle ORM
-├── client/                  # React 19 + Vite frontend with shadcn/ui
-├── shared/                  # Common types and utilities
-├── drizzle/                 # Database schema migrations
-├── patches/                 # Package overrides (wouter)
-├── drizzle.config.ts        # ORM configuration
-├── vite.config.ts           # Frontend build config
-└── package.json             # Dependencies (tRPC, Drizzle, Radix UI, etc.)
-```
-
-**Key Capabilities:**
-- tRPC end-to-end type safety
-- Drizzle ORM with MySQL2
-- React 19 with server components
-- S3 presigned URL support
-- JWT authentication (jose)
-- Real-time streaming (streamdown)
-
-**Integration Status:** 🟡 Ready for bridge to Skill Protocol
-
-## Integration Roadmap
-
-### Phase 1: Bridge Construction (Current)
-- [ ] Map SKILL agent definitions to State Engine database schemas
-- [ ] Create adapter to run SKILL Python scripts within TypeScript runtime (child_process/worker threads)
-- [ ] Expose State Engine tRPC procedures as SKILL tool capabilities
-- [ ] Build bidirectional event emitter between Python agent loop and Node.js server
-
-### Phase 2: Unified Execution
-- [ ] Implement hot-reload for SKILL changes without server restart
-- [ ] Sync agent state between SKILL StateManager and Drizzle transactions
-- [ ] Build CLI tool (`matrix-cli`) to orchestrate both layers simultaneously
-- [ ] Add telemetry stream from both layers to unified metrics endpoint
-
-### Phase 3: Matrix Expansion
-- [ ] Add Layer 3: Network Bridge (WebSocket/gRPC inter-layer communication)
-- [ ] Add Layer 4: Security Gateway (unified authz/authn across layers)
-- [ ] Add Layer 5: Telemetry Hub (OpenTelemetry integration)
-- [ ] Implement cross-layer event bus with backpressure handling
-- [ ] Deploy unified Docker image with multi-runtime support (Python + Node)
-
-## Directory Conventions
+## Layer Structure
 
 ```
 layers/
-├── <layer-name>/           # Isolated capability domain
-│   ├── references/         # External docs/standards for this layer
-│   ├── scripts/            # Layer-specific tooling
-│   └── ...                 # Layer implementation
-├── bridges/                # (Future) Integration code between layers
-│   ├── skill-to-state/     # Python ↔ TypeScript adapters
-│   ├── events/             # Cross-layer event bus
-│   └── cli/                # Unified orchestration CLI
-└── matrix/                 # (Future) Unified runtime orchestrator
-    ├── config/             # Matrix-wide configuration
-    └── runtime/            # Multi-runtime process manager
+├── skill-protocol/          # SKILL agent framework & language spec
+├── state-engine/            # Full-stack TypeScript runtime (tRPC + React)
+├── cli-orchestrator/        # Termux-native CLI deployment guides
+└── README.md                # This file
 ```
 
-## Notes on "Drift"
+---
 
-This repo intentionally accumulates seemingly disparate components. 
-What appears as drift is actually **strategic layering**:
+## Layer Descriptions
 
-1. **Import** raw capability (ZIP/SKILL/Code)
-2. **Isolate** in dedicated layer directory
-3. **Build** explicit bridges (adapters, translators, sync tools)
-4. **Merge** into unified matrix
+### 1. `skill-protocol/` - Agentic Worker Framework
 
-Do not refactor layers into a single monolith prematurely. 
-Preserve layer boundaries until bridges are explicitly coded.
+**Purpose**: Defines the SKILL language specification and Python-based agentic worker implementation.
+
+**Key Capabilities**:
+- Persistent state management with hash-based caching
+- Parallel tool execution with configurable worker pools
+- Daemon, interactive, and one-shot execution modes
+- Dry-run simulation for safe testing
+- Google ADK 2.0 pattern integration
+
+**Contents**:
+```
+skill-protocol/
+├── agentic-worker.skill/
+│   ├── SKILL.md             # Language spec & quickstart
+│   ├── scripts/
+│   │   ├── agentic_worker.py    # Core agent framework
+│   │   └── init_worker.py       # Project scaffolding
+│   ├── templates/
+│   │   └── worker_template.py   # Boilerplate generator
+│   └── references/
+│       ├── architecture.md      # Architectural deep-dive
+│       ├── adk-patterns.md      # Google ADK 2.0 patterns
+│       └── tool-execution.md    # Tool dispatch guide
+```
+
+**Bridge Requirements** (Future):
+- IPC layer for Python ↔ TypeScript communication
+- Shared state serialization format
+- Event stream adapter for telemetry
+
+---
+
+### 2. `state-engine/` - Full-Stack TypeScript Runtime
+
+**Purpose**: Production-grade web application with tRPC backend, React 19 frontend, and Drizzle ORM.
+
+**Key Capabilities**:
+- End-to-end type safety with tRPC
+- Real-time state synchronization
+- JWT authentication with S3 storage integration
+- LLM tool integration (OpenAI, Gemini, Ollama)
+- 60+ shadcn/ui components
+- Multi-provider OAuth (Google, GitHub, etc.)
+
+**Contents**:
+```
+state-engine/
+├── server/                    # tRPC + Express backend
+│   ├── trpc/                  # RPC routers & procedures
+│   ├── routes/                # REST endpoints
+│   ├── services/              # Business logic
+│   ├── tools/                 # LLM tool implementations
+│   └── utils/                 # Helpers (auth, s3, llm)
+├── client/                    # React 19 + Vite frontend
+│   ├── src/
+│   │   ├── components/        # shadcn/ui components
+│   │   ├── pages/             # Route components
+│   │   ├── hooks/             # Custom React hooks
+│   │   └── lib/               # Utilities
+│   └── public/                # Static assets
+├── shared/                    # Common types & utilities
+├── drizzle/                   # Database schema & migrations
+├── references/                # Integration guides (9 docs)
+│   ├── Data API Integration Guide.md
+│   ├── OAuth Implementation Guide.md
+│   ├── Voice Recognition Integration.md
+│   ├── Maps API Integration.md
+│   └── ...
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── drizzle.config.ts
+```
+
+**Bridge Requirements** (Future):
+- tRPC client for Python agents
+- Shared type definitions (TypeScript ↔ Python)
+- WebSocket event bridge for real-time updates
+
+---
+
+### 3. `cli-orchestrator/` - Termux-Native Deployment
+
+**Purpose**: Comprehensive deployment guides for Android/Termux environments including APK, PWA, Web RCI, and CLI launcher.
+
+**Key Capabilities**:
+- Android APK build system (Docker & native)
+- PWA deployment to multiple hosting platforms
+- Web RCI dashboard for remote monitoring
+- CLI launcher for scripting & automation
+- Multi-platform LLM provider support
+
+**Contents**:
+```
+cli-orchestrator/
+├── Universal Agentic Worker - Deployment Guide.md
+└── (future: scaffold scripts, matrix configs)
+```
+
+**Bridge Requirements** (Future):
+- Matrix configuration parser
+- Agent index registry
+- Scaffold lifecycle manager
+- Termux environment detector
+
+---
 
 ## Bridge Development Guidelines
 
-When building bridges between layers:
+When constructing bridges between layers, follow these principles:
 
-1. **Respect Runtime Boundaries**: Python skills run in isolated processes; TypeScript engine runs as main server
-2. **Use Structured IPC**: JSON-RPC over stdio or Unix sockets for inter-layer communication
-3. **Maintain Type Safety**: Generate TypeScript types from Python pydantic models (or vice versa)
-4. **Handle Failures Gracefully**: Each layer must degrade independently if the other fails
-5. **Log with Correlation IDs**: Trace requests across layer boundaries for debugging
+### 1. Explicit Contracts
+- Define clear interfaces in `bridges/` directory
+- Use Protocol Buffers or JSON Schema for cross-language contracts
+- Version all bridge APIs
 
-## Next Steps
+### 2. Type Safety
+- Generate TypeScript types from Python type hints (or vice versa)
+- Validate all cross-layer data at boundaries
+- Fail fast on type mismatches
 
-1. Review `skill-protocol/agentic-worker.skill/SKILL.md` for agent framework details
-2. Review `state-engine/server/` for existing tRPC router structure
-3. Create `bridges/skill-to-state/adapter.py` and `adapter.ts` for bidirectional communication
-4. Test with a simple "ping" tool that crosses layer boundaries
+### 3. Failure Handling
+- Implement circuit breakers for inter-layer calls
+- Log all bridge transactions with correlation IDs
+- Provide graceful degradation when bridges fail
+
+### 4. Performance
+- Batch cross-layer requests where possible
+- Cache frequently-accessed data at bridge boundaries
+- Monitor bridge latency and throughput
+
+### 5. Testing
+- Unit test each bridge independently
+- Integration test layer combinations
+- Load test under realistic concurrency
+
+---
+
+## Directory Conventions
+
+| Directory | Purpose |
+|-----------|---------|
+| `layers/` | Isolated capability imports (current phase) |
+| `bridges/` | Explicit integration code (next phase) |
+| `matrix/` | Matrix-driven execution configs & jobs |
+| `reference/` | Canonical standards (root level) |
+| `docs/` | Project documentation (root level) |
+
+---
+
+## Integration Roadmap
+
+### Phase 1: Bridge Construction (Q1 2026)
+- [ ] Build Python ↔ TypeScript IPC layer
+- [ ] Implement shared event bus
+- [ ] Create unified CLI orchestrator
+- [ ] Develop matrix configuration parser
+
+### Phase 2: Unified Execution (Q2 2026)
+- [ ] Connect skill-protocol workers to state-engine runtime
+- [ ] Enable CLI orchestrator to dispatch matrix jobs
+- [ ] Implement cross-layer state synchronization
+- [ ] Add telemetry aggregation
+
+### Phase 3: Matrix Expansion (Q3 2026)
+- [ ] Scale to multi-agent coordination
+- [ ] Add dynamic capability discovery
+- [ ] Implement auto-healing workflows
+- [ ] Deploy to production environments
+
+---
+
+## Notes
+
+- **Do not modify layer contents directly**—treat layers as imported capabilities
+- **All integration logic belongs in `bridges/`**—never couple layers directly
+- **Preserve layer boundaries** until explicit bridges are coded
+- **Document all bridge assumptions** in bridge-specific README files
+
+This layered approach ensures clean separation of concerns while enabling gradual, controlled integration into a unified agentic matrix.

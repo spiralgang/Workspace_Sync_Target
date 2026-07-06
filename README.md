@@ -12,12 +12,14 @@ This monorepo consolidates multi-platform clients, shared libraries, backend ser
 
 This is a production-grade monorepo for building agentic AI systems with:
 - **Three Planes**: Control (orchestration), Compute (execution), Storage (persistence)
+- **Layered Architecture**: Isolated capability imports (`layers/`) with explicit bridge integration (future phase)
+- **Matrix Execution**: Cartesian product build grid with agent registry and anti-flail enforcement
 - **Multi-Platform Support**: Android, desktop (x86-64), CLI tools, PWA, and Web RCI
 - **Shared Libraries**: UI components, API clients, AI logic, MCP protocol, state management
 - **Backend Services**: API gateway, AI inference, job scheduler, workspace orchestrator, IAM
 - **Professional Standards**: Security-first design, traceable AI operations, auditable codebase
 
-Quick start: Review the [Reference Vault](#the-reference-vault), clone the repo, install dependencies, and run `docker-compose up` for backend services.
+Quick start: Review the [Reference Vault](#the-reference-vault), explore the [Layers](#layered-architecture), check the [Matrix Config](#matrix-execution-system), clone the repo, install dependencies, and run `docker-compose up` for backend services.
 
 ## The Reference Vault: Our Single Source of Truth
 
@@ -53,6 +55,31 @@ These are **non-negotiable baseline standards**. All contributions must adhere t
 | **Web RCI** | Remote Command Interface | Dashboard for monitoring and control |
 | **CLI Launcher** | Terminal-based | Scripting and automation |
 
+### Layered Architecture
+
+The repo uses a **layered capability import** strategy to manage complexity and enable gradual integration:
+
+| Layer | Purpose | Contents |
+|-------|---------|----------|
+| **`skill-protocol/`** | SKILL agent framework | Python workers, state management, ADK patterns |
+| **`state-engine/`** | Full-stack TypeScript runtime | tRPC backend, React 19 frontend, Drizzle ORM |
+| **`cli-orchestrator/`** | Termux-native deployment | APK/PWA/RCI guides, matrix configs |
+
+**Integration Philosophy**: Layers remain isolated until explicit bridges are constructed in the `bridges/` directory. See [layers/README.md](layers/README.md) for the complete integration roadmap.
+
+### Matrix Execution System
+
+The matrix-driven execution system enables parallel, multi-dimensional builds:
+
+- **Cartesian Product Grid**: Combines SDK × ABI × build type × optimization × environment
+- **Agent Registry**: Live index of 6 specialist agents with capability mapping
+- **Anti-Flail Enforcement**: Rejects duplicate capabilities and unregistered agents
+- **State Persistence**: Preserves cache hashes and performance scores across runs
+
+Configuration files:
+- [`matrix/config/matrix.yml`](matrix/config/matrix.yml) - Build grid definition
+- [`matrix/config/agent-index.json`](matrix/config/agent-index.json) - Agent registry
+
 ### Supported LLM Providers
 - OpenAI (GPT-4o, etc.)
 - Google Gemini
@@ -64,6 +91,7 @@ These are **non-negotiable baseline standards**. All contributions must adhere t
 ```
 /
 ├── .github/                    # GitHub configurations (workflows, templates)
+├── bridges/                    # Cross-layer integration code (future phase)
 ├── content/                    # Assets (images, screenshots)
 ├── dashboard/                  # Web dashboard / RCI interface
 ├── docs/                       # Documentation
@@ -72,6 +100,11 @@ These are **non-negotiable baseline standards**. All contributions must adhere t
 │   ├── guides/                 # User and developer guides
 │   ├── proposal.md             # WebMCP API proposal (canonical)
 │   └── service-workers.md      # PWA service worker documentation
+├── layers/                     # Layered capability imports
+│   ├── skill-protocol/         # SKILL agent framework & language spec
+│   ├── state-engine/           # Full-stack TypeScript runtime (tRPC + React)
+│   ├── cli-orchestrator/       # Termux-native deployment guides
+│   └── README.md               # Layer integration roadmap
 ├── libs/                       # Shared libraries
 │   ├── auth-client/            # Authentication client library
 │   ├── common-utils/           # Cross-cutting utilities
@@ -80,11 +113,17 @@ These are **non-negotiable baseline standards**. All contributions must adhere t
 │   ├── standards-enforcement/  # Security and quality enforcement tools
 │   ├── state-management/       # Persistent state and caching
 │   └── ui-components/          # Reusable UI components
+├── matrix/                     # Matrix-driven execution system
+│   ├── config/                 # Matrix & agent configurations
+│   │   ├── matrix.yml          # Cartesian product build grid
+│   │   └── agent-index.json    # Live agent registry
+│   └── jobs/                   # Job execution artifacts
 ├── planes/                     # Architectural planes
 │   ├── compute/                # Execution plane (workers, runners)
 │   ├── control/                # Orchestration plane (schedulers, coordinators)
 │   └── storage/                # Persistence plane (databases, caches)
 ├── reference/                  # The Reference Vault (canonical standards)
+├── references/                 # Integration guides & external references
 ├── sdks/                       # SDK packages
 │   ├── honcho-sdk/             # Orchestration SDK
 │   ├── services-api-client/    # Backend API client
@@ -105,9 +144,7 @@ These are **non-negotiable baseline standards**. All contributions must adhere t
 ├── CODEOWNERS                  # Code ownership assignments
 ├── CONTRIBUTING.md             # Contribution guidelines (W3C CG)
 ├── LICENSE                     # MIT License
-├── MEREAD.md                   # Project overview and standards introduction
 ├── README.md                   # This file
-├── SKILL.md                    # Agentic Worker skill definition
 └── w3c.json                    # W3C repository metadata
 ```
 
