@@ -1,0 +1,110 @@
+# Matrix Configuration
+# Defines the cartesian product of build variables for parallel execution
+
+version: "1.0"
+name: "agentic-matrix"
+description: "Multi-dimensional build and execution grid for agentic workers"
+
+# Matrix Variables - Cartesian Product
+variables:
+  sdk: [21, 26, 30, 34]
+  abi: ["arm64-v8a", "armeabi-v7a", "x86_64"]
+  buildType: ["debug", "release"]
+  optimize: ["none", "r8"]
+  env: ["termux", "docker", "native"]
+
+# Total Combinations: 4 × 3 × 2 × 2 × 3 = 144 jobs
+
+# Include Overrides - Explicit additions to the matrix
+include:
+  - sdk: 34
+    abi: "arm64-v8a"
+    buildType: "release"
+    optimize: "r8"
+    env: "termux"
+    priority: "high"
+    agent: "pack-agent"
+
+# Exclude Rules - Remove specific combinations
+exclude:
+  - abi: "x86_64"
+    buildType: "debug"
+    reason: "Not supported in development builds"
+  - sdk: 21
+    optimize: "r8"
+    reason: "R8 requires minimum SDK 26"
+
+# Execution Strategy
+execution:
+  maxParallel: 6
+  failFast: false
+  retryCount: 2
+  timeout: 3600  # seconds
+  resourceSlots:
+    cpu: 4
+    memory: "8Gi"
+    disk: "50Gi"
+
+# Agent Mapping
+agents:
+  pack-agent:
+    role: "packaging"
+    capabilities: ["apk-build", "zipalign", "apksigner"]
+    deps: ["openjdk-11", "build-tools-34"]
+  code-agent:
+    role: "compilation"
+    capabilities: ["tsc", "vite", "drizzle-kit"]
+    deps: ["node-18", "pnpm"]
+  test-agent:
+    role: "validation"
+    capabilities: ["vitest", "pytest", "lint"]
+    deps: ["python-3.11", "node-18"]
+  security-agent:
+    role: "security-scan"
+    capabilities: ["dependency-check", "sast", "secret-scan"]
+    deps: ["snyk", "trivy"]
+  deploy-agent:
+    role: "deployment"
+    capabilities: ["docker-build", "kubectl", "helm"]
+    deps: ["docker", "kubernetes-cli"]
+  telemetry-agent:
+    role: "monitoring"
+    capabilities: ["metrics-collect", "log-aggregate", "alert"]
+    deps: ["prometheus", "grafana"]
+
+# Cache Configuration
+cache:
+  enabled: true
+  paths:
+    - "~/.npm"
+    - "~/.pnpm-store"
+    - "~/.cache/pip"
+    - "node_modules"
+    - "__pycache__"
+  keyPattern: "${{runner.os}}-${{hashFiles('**/lockfiles')}}"
+  restoreKeys:
+    - "${{runner.os}}-"
+
+# Output Configuration
+output:
+  format: "json-lines"
+  destinations:
+    - type: "file"
+      path: "matrix-execution.log"
+    - type: "stdout"
+      filter: "error,warn"
+    - type: "webhook"
+      url: "${{env.TELEMETRY_WEBHOOK}}"
+      events: ["job.complete", "job.fail", "matrix.complete"]
+
+# State Persistence
+state:
+  directory: "~/.termux/agent-state/"
+  preserveOnReset:
+    - "cache-hashes"
+    - "performance-scores"
+    - "agent-index"
+  clearOnReset:
+    - "pending-jobs"
+    - "in-progress"
+    - "temporary-artifacts"
