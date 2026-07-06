@@ -1,52 +1,25 @@
-```
-# Dependencies
+# Node
 node_modules/
-
-# Build outputs
 dist/
 build/
-target/
 
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
+*.py[cod]
 .venv/
-.venv.bak/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-*.tmp
-*.swp
-*.swo
-.DS_Store
-Thumbs.db
 
-# Environment variables
-.env
-.env.local
-.env.*
+# Context & AI artifacts (generated)
+.github/context-bundle.json
+.github/ai-reviews.json
+.github/reviews/
 
-# IDE
-.vscode/
-.idea/
+# Secrets template (keep example, ignore real)
+.github/secrets.json
+!.github/secrets.example.json
 
 # Logs
 *.log
 
-# Coverage
-coverage/
-htmlcov/
-.coverage
-```
+# OS
+.DS_Store
+Thumbs.db
