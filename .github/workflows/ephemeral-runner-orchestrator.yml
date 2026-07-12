@@ -26,12 +26,12 @@ jobs:
       runner_info: ${{ steps.setup.outputs.runner_info }}
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Setup Ephemeral Runner
         id: setup
         env:
@@ -39,14 +39,14 @@ jobs:
           RUNNER_STORAGE: "${{ github.workspace }}/runners"
           RUNNER_LABELS: "ephemeral,agentic-matrix,multi-ai"
         run: |
-          python .github/helper-scripts/ephemeral_runner.py ${{ github.event.inputs.action || 'setup' }}
-      
+          python .github/helper-scripts/ephemeral_runner.py ${{ github.event.inputs.action || 'setup' }} ${{ github.event.inputs.ttl_minutes || '60' }}
+
       - name: Store Runner State
         if: github.event.inputs.action != 'cleanup'
         run: |
           mkdir -p .github/runner-state
           echo '${{ steps.setup.outputs.runner_info }}' > .github/runner-state/current-runner.json
-      
+
       - name: Upload Runner State
         if: github.event.inputs.action != 'cleanup'
         uses: actions/upload-artifact@v4
@@ -64,6 +64,6 @@ jobs:
         run: |
           echo "✓ Ephemeral runner ready for dependent workflows"
           echo "Runner Info: ${{ needs.manage-runner.outputs.runner_info }}"
-          
+
       # In real implementation, would trigger other workflows here
       # using repository_dispatch or workflow_run events
