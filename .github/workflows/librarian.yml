@@ -23,10 +23,14 @@ jobs:
         id: filter
         with:
           filters: |
-            api_gateway: services/api-gateway/**
-            ai_core: services/ai-core/**
-            mcp_server: services/mcp-server/**
-            webops: services/webops/**
+            api_gateway:
+              - 'services/api-gateway/**'
+            ai_core:
+              - 'services/ai-core/**'
+            mcp_server:
+              - 'services/mcp-server/**'
+            webops:
+              - 'services/webops/**'
 
   test-api-gateway:
     needs: changes
@@ -49,7 +53,7 @@ jobs:
 
   deploy-api-gateway:
     needs: test-api-gateway
-    if: github.ref == 'refs/heads/main' && ${{ needs.changes.outputs.api_gateway == 'true' }}
+    if: github.ref == 'refs/heads/main' && needs.changes.outputs.api_gateway == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -79,7 +83,7 @@ jobs:
 
   deploy-ai-core:
     needs: test-ai-core
-    if: github.ref == 'refs/heads/main' && ${{ needs.changes.outputs.ai_core == 'true' }}
+    if: github.ref == 'refs/heads/main' && needs.changes.outputs.ai_core == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -109,7 +113,7 @@ jobs:
 
   deploy-mcp-server:
     needs: test-mcp-server
-    if: github.ref == 'refs/heads/main' && ${{ needs.changes.outputs.mcp_server == 'true' }}
+    if: github.ref == 'refs/heads/main' && needs.changes.outputs.mcp_server == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -139,7 +143,7 @@ jobs:
 
   deploy-webops:
     needs: test-webops
-    if: github.ref == 'refs/heads/main' && ${{ needs.changes.outputs.webops == 'true' }}
+    if: github.ref == 'refs/heads/main' && needs.changes.outputs.webops == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
