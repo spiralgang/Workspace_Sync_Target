@@ -111,7 +111,8 @@ def safe_builtins() -> dict:
     real = __builtins__ if isinstance(__builtins__, dict) else vars(__builtins__)
     keep = ("True", "False", "None", "str", "list", "dict", "tuple", "set",
             "len", "range", "print", "type", "isinstance", "int", "float",
-            "bool", "enumerate", "zip", "map", "json", "__build_class__", "super")
+            "bool", "enumerate", "zip", "map", "json", "__build_class__", "super",
+            "object", "Exception", "ValueError", "TypeError", "KeyError", "AttributeError")
     return {k: real[k] for k in keep if k in real}
 
 def compile_child(src: str, llm) -> object:
