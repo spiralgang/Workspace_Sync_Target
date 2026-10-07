@@ -169,8 +169,12 @@ def run_fsm(llm, context: str, max_cycles: int = 1) -> dict:
 # --- 5. living-code mutation loop (parallel deploy) ---------------------------
 def deploy_children(llm, children_src: list[str], task: dict, max_workers: int = 4) -> list[str]:
     def _run(src):
-        inst = compile_child(src, llm)
-        return inst.execute(task)
+        try:
+            inst = compile_child(src, llm)
+            return inst.execute(task)
+        except Exception as e:
+            LOG.error("Child execution failed: %s", e)
+            return f"Error: {e}"
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
         return list(ex.map(_run, children_src))
 
