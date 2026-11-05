@@ -133,7 +133,7 @@ jobs:
             env: "termux"
             agent: "test-agent"
       fail-fast: false
-      max-parallel: ${{ env.MAX_PARALLEL }}
+      max-parallel: ${{ fromJSON(github.event.inputs.max-parallel || 6) }}
     steps:
       - uses: actions/checkout@v4
       

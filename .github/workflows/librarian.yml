@@ -52,7 +52,7 @@ jobs:
           pytest
 
   deploy-api-gateway:
-    needs: test-api-gateway
+    needs: [changes, test-api-gateway]
     if: github.ref == 'refs/heads/main' && needs.changes.outputs.api_gateway == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -82,7 +82,7 @@ jobs:
           pytest
 
   deploy-ai-core:
-    needs: test-ai-core
+    needs: [changes, test-ai-core]
     if: github.ref == 'refs/heads/main' && needs.changes.outputs.ai_core == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -112,7 +112,7 @@ jobs:
           pytest
 
   deploy-mcp-server:
-    needs: test-mcp-server
+    needs: [changes, test-mcp-server]
     if: github.ref == 'refs/heads/main' && needs.changes.outputs.mcp_server == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -142,7 +142,7 @@ jobs:
           pytest
 
   deploy-webops:
-    needs: test-webops
+    needs: [changes, test-webops]
     if: github.ref == 'refs/heads/main' && needs.changes.outputs.webops == 'true'
     runs-on: ubuntu-latest
     steps:
