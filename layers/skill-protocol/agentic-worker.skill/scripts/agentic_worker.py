@@ -18,6 +18,7 @@ AGENT_CACHE_TTL = int(os.getenv("AGENT_CACHE_TTL", str(3600 * 24))) # 24 hours
 AGENT_DRY_RUN = os.getenv("AGENT_DRY_RUN", "1") == "1"
 AGENT_STATE_DIR = os.getenv("AGENT_STATE_DIR", os.path.expanduser("~/.agentic_worker"))
 AGENT_LOG_LEVEL = os.getenv("AGENT_LOG_LEVEL", "INFO").upper()
+AGENT_MAX_ITERATIONS = int(os.getenv("AGENT_MAX_ITERATIONS", "1000"))  # daemon safety cap; 0 = unlimited
 
 # Ensure state directory exists
 os.makedirs(AGENT_STATE_DIR, exist_ok=True)
@@ -296,10 +297,13 @@ class AgentLoop:
     def run_daemon(self):
         """Runs the agent in a continuous loop."""
         logger.info(json.dumps({"event": "daemon_start", "interval": self.interval}))
+        iterations = 0
         try:
-            while True:
+            while AGENT_MAX_ITERATIONS <= 0 or iterations < AGENT_MAX_ITERATIONS:
                 self.run_once()
+                iterations += 1
                 time.sleep(self.interval)
+            logger.info(json.dumps({"event": "daemon_shutdown", "reason": "max_iterations", "iterations": iterations}))
         except KeyboardInterrupt:
             logger.info(json.dumps({"event": "daemon_shutdown", "reason": "KeyboardInterrupt"}))
         except Exception as e:
